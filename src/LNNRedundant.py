@@ -11,26 +11,31 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import numpy as np
 
-# PA-10 Modified DH parameters
+# ========================
+# Robot Definition: PA10
+# ========================
 pa10 = DHRobot([
-    RevoluteDH(d=0.317, a=0, alpha=0),
-    RevoluteDH(d=0, a=0, alpha=-np.pi/2),
-    RevoluteDH(d=0.45, a=0, alpha=np.pi/2),
-    RevoluteDH(d=0, a=0, alpha=-np.pi/2),
-    RevoluteDH(d=0.48, a=0, alpha=np.pi/2),
-    RevoluteDH(d=0, a=0, alpha=-np.pi/2),
-    RevoluteDH(d=0.07, a=0, alpha=np.pi/2)
+    RevoluteDH(d=0.317, a=0.0, alpha=-np.pi/2, qlim=[-3.089, 3.089]),
+    RevoluteDH(d=0.0,   a=0.0, alpha=np.pi/2,  qlim=[-1.64, 1.64]),
+    RevoluteDH(d=0.45,  a=0.0, alpha=-np.pi/2, qlim=[-3.036, 3.036]),
+    RevoluteDH(d=0.0,   a=0.0, alpha=np.pi/2,  qlim=[-2.39, 2.39]),
+    RevoluteDH(d=0.48,  a=0.0, alpha=-np.pi/2, qlim=[-4.45, 4.45]),
+    RevoluteDH(d=0.0,   a=0.0, alpha=np.pi/2,  qlim=[-2.878, 2.878]),
+    RevoluteDH(d=0.07,  a=0.0, alpha=0,        qlim=[-2.878, 2.878]),
 ], name='PA10')
 
+# ====================================
+# Dynamics Definition & Simulation
+# ====================================
 n = 7  # joints
 m = 6  # task space DOF
 
-C1 = 2e-3* np.eye(n)
-C2 = 2e-3* np.eye(m)
+C1 = 2e-3 * np.eye(n)
+C2 = 2e-3 * np.eye(m)
 W = np.eye(n)
-theta_goal = np.array([0.0, 1.5, 0.5, -0.5, 0.5, -0.5, 0.5])
 
-# --- Dynamics Function ---
+theta_goal = np.array([0.1 , -1.0, 0, 1.57, 0, 4.0, 0.0])
+
 def dynamics(t, y):
     theta = y[0:n]
     v = y[n:2*n]
@@ -38,17 +43,48 @@ def dynamics(t, y):
 
     J = pa10.jacob0(theta)
     r_d_dot = J @ (theta_goal - theta)
+
     theta_dot = v
-    v_dot = np.linalg.inv(C1) @ (-W @ v - J.T @ u)
-    u_dot = np.linalg.inv(C2) @ (J @ v - r_d_dot)
+
+    # Null-space projection matrix
+    J_pinv = np.linalg.pinv(J)
+    N = np.eye(n) - J_pinv @ J
+
+    # Add null-space stabilization toward theta_goal
+    null_term = -N @ (theta - theta_goal)
+
+    v_dot = np.linalg.solve(C1, -W @ v - J.T @ u + null_term)
+    u_dot = np.linalg.solve(C2, J @ v - r_d_dot)
 
     return np.concatenate([theta_dot, v_dot, u_dot])
 
-        # Run simulation once
+# =====================
+# Run Simulation Once
+# =====================
 y0 = np.zeros(2 * n + m)
-t_span = (0, 4)
-t_eval = np.linspace(*t_span,500)
-sol = solve_ivp(dynamics, t_span, y0, t_eval=t_eval, method='RK45')
+t_span = (0, 5)
+t_eval = np.linspace(*t_span, 500)
+
+sol = solve_ivp(dynamics, t_span, y0, t_eval=t_eval, method='RK45', rtol=1e-6, atol=1e-9)
+
+# ========================
+# Plot Joint Angle Errors
+# ========================
+theta_traj = sol.y[0:n, :].T  # shape: (timesteps, 7)
+errors = theta_goal - theta_traj
+
+plt.figure(figsize=(10, 6))
+for i in range(n):
+    plt.plot(t_eval, errors[:, i], label=f'Joint {i+1}')
+plt.xlabel("Time [s]")
+plt.ylabel("Joint Angle Error [rad]")
+plt.title("Joint Angle Errors Over Time")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+
 
 class LNNNode(Node):
     def __init__(self):
@@ -56,7 +92,6 @@ class LNNNode(Node):
         self.publisher_ = self.create_publisher(JointState, '/joint_states', 10)
         self.timer_period = 0.01  # 100 Hz
         self.joint_names = ["S1", "S2", "S3", "E1", "E2", "W1", "W2"]
-
 
         self.theta_traj = sol.y[0:n, :].T  # shape (timesteps, 7)
         self.t_eval = t_eval
