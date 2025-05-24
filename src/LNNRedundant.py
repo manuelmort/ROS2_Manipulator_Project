@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-
+#OFFICIAL LNN CODE WE CAN USE ATM
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import JointState
@@ -33,39 +33,59 @@ m = 6  # task space DOF
 C1 = 2e-3 * np.eye(n)
 C2 = 2e-3 * np.eye(m)
 W = np.eye(n)
+#theta_goal = np.array([0.1 , -1.0, 0, 2.0, 0, 3.8, 0.0])
+#theta_goal = np.array([-1.9, -1.10, -0.10, 2.14, -0.110, 3.8, 2.59270569])
+theta_list = [
+    np.array([0.1, -1.0, 0, 2.0, 0, 3.8, 0.0]),
+    np.array([-0.017, 0.487, 0.049, 1.977, 3.14072, 0.855 , 0.078]),
+    np.array([-0.017, 0.753, 0.049, 1.098, -3.14072, 0.24 , 0.078]),
+    np.array([-0.017, 0.984, 0.049, 1.098, 3.1472, 0.545 , 0.078]),
+    np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.078]),
+    np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.078]),
+    np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.078]),
+    np.array([0.001, 0.001, 0.001, 0.001, 0.001, -0.001 , 0.001])
 
-theta_goal = np.array([0.1 , -1.0, 0, 1.57, 0, 4.0, 0.0])
 
-def dynamics(t, y):
-    theta = y[0:n]
-    v = y[n:2*n]
-    u = y[2*n:2*n + m]
+]
 
-    J = pa10.jacob0(theta)
-    r_d_dot = J @ (theta_goal - theta)
+def dynamics_loop(theta_goal):
+    def dynamics(t, y):
+        theta = y[0:n]
+        v = y[n:2*n]
+        u = y[2*n:2*n + m]
 
-    theta_dot = v
+        J = pa10.jacob0(theta)
+        r_d_dot = J @ (theta_goal - theta)
 
-    # Null-space projection matrix
-    J_pinv = np.linalg.pinv(J)
-    N = np.eye(n) - J_pinv @ J
+        theta_dot = v
+        J_pinv = np.linalg.pinv(J)
+        N = np.eye(n) - J_pinv @ J
+        null_term = -N @ (theta - theta_goal)
 
-    # Add null-space stabilization toward theta_goal
-    null_term = -N @ (theta - theta_goal)
+        v_dot = np.linalg.solve(C1, -W @ v - J.T @ u + null_term)
+        u_dot = np.linalg.solve(C2, J @ v - r_d_dot)
 
-    v_dot = np.linalg.solve(C1, -W @ v - J.T @ u + null_term)
-    u_dot = np.linalg.solve(C2, J @ v - r_d_dot)
+        
+        return np.concatenate([theta_dot, v_dot, u_dot])
 
-    return np.concatenate([theta_dot, v_dot, u_dot])
+    def reached_goal(t, y):
+        theta = y[0:n]
+        error = np.linalg.norm(theta - theta_goal)
+        return error - 0.05  # Stop integration when error < 0.05 radians
+
+    reached_goal.terminal = True  # Stop when this event triggers
+    reached_goal.direction = -1   # Trigger when value is decreasing through 0
+
+    return dynamics, reached_goal
+
 
 # =====================
 # Run Simulation Once
 # =====================
-y0 = np.zeros(2 * n + m)
-t_span = (0, 5)
-t_eval = np.linspace(*t_span, 500)
 
-sol = solve_ivp(dynamics, t_span, y0, t_eval=t_eval, method='RK45', rtol=1e-6, atol=1e-9)
+
+
+'''
 
 # ========================
 # Plot Joint Angle Errors
@@ -84,7 +104,13 @@ plt.grid(True)
 plt.tight_layout()
 plt.show()
 
+'''
+theta_traj_list = []
 
+
+y_current = np.zeros(2 * n + m)
+t_span = (0, 5)
+t_eval = np.linspace(*t_span, 500)
 
 class LNNNode(Node):
     def __init__(self):
@@ -93,10 +119,39 @@ class LNNNode(Node):
         self.timer_period = 0.01  # 100 Hz
         self.joint_names = ["S1", "S2", "S3", "E1", "E2", "W1", "W2"]
 
-        self.theta_traj = sol.y[0:n, :].T  # shape (timesteps, 7)
-        self.t_eval = t_eval
-        self.step = 0
+        y_current = np.zeros(2 * n + m)
+        t_span = (0, 10)  # Give enough time to converge
+        t_eval = np.linspace(*t_span, 1000)
 
+        theta_traj_list = []
+
+        import time
+        for i, theta_goal in enumerate(theta_list):
+            self.get_logger().info(f"🧭 Solving trajectory {i+1}/{len(theta_list)}")
+
+            dynamics_fn, stop_event = dynamics_loop(theta_goal)
+
+            sol = solve_ivp(
+                dynamics_fn,
+                t_span,
+                y_current,
+                t_eval=t_eval,
+                events=stop_event,
+                method='RK45',
+                rtol=1e-6,
+                atol=1e-9
+            )
+            
+            theta_segment = sol.y[0:n, :].T
+            theta_traj_list.append(theta_segment)
+
+            y_current = sol.y[:, -1]  # New initial state for next goal
+
+            time.sleep(0.5)  # ⏸️ Optional pause
+
+        # Combine into full trajectory
+        self.theta_traj = np.vstack(theta_traj_list)
+        self.step = 0
         self.timer = self.create_timer(self.timer_period, self.publish_joint_state)
 
     def publish_joint_state(self):
@@ -112,6 +167,7 @@ class LNNNode(Node):
         self.publisher_.publish(joint_state)
 
         self.step += 1
+
 
 def main(args=None):
     rclpy.init(args=args)
