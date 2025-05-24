@@ -6,11 +6,8 @@ This repository simulates a Mitsubishi PA-10 robotic arm in **ROS 2 Jazzy** usin
 
 ## 🎥 Demo
 
-https://github.com/manuelmort/ROS2_Manipulator_Project/blob/main/assets/pa10example.mp4<!-- GitHub doesn't autoplay local .mp4 videos. So just link it like this. -->
 
-Or click the image below to watch the demo:
-
-[![Watch the demo](assets/pa10_urdf.png)](assets/pa10example.mp4)
+[![Watch the demo](assets/pa10_urdf.png)](https://github.com/manuelmort/ROS2_Manipulator_Project/blob/main/assets/pa10example.mp4)
 
 
 ## 📦 Features
