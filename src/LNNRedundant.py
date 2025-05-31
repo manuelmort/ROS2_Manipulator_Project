@@ -45,8 +45,13 @@ theta_list = [
     np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
     np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
     np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-    #np.array([0.001, 0.001, 0.001, 0.001, 0.001, -0.001 , 0.001])
 
+
+
+    #np.array([1.57, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
+    #np.array([1.57, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
+    #np.array([1.57, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
+    #np.array([0.001, 0.001, 0.001, 0.001, 0.001, -0.001 , 0.001])
 
 ]
 
@@ -110,10 +115,6 @@ plt.show()
 theta_traj_list = []
 
 
-y_current = np.zeros(2 * n + m)
-t_span = (0, 5)
-t_eval = np.linspace(*t_span, 500)
-
 class LNNNode(Node):
     def __init__(self):
         super().__init__('lnn_sim_node')
@@ -126,7 +127,7 @@ class LNNNode(Node):
         ]
         y_current = np.zeros(2 * n + m)
         t_span = (0, 10)  # Give enough time to converge
-        t_eval = np.linspace(*t_span, 1000)
+        t_eval = np.linspace(*t_span, 800)
 
         theta_traj_list = []
 
@@ -152,7 +153,7 @@ class LNNNode(Node):
 
             y_current = sol.y[:, -1]  # New initial state for next goal
 
-            time.sleep(0.5)  # ⏸️ Optional pause
+            time.sleep(1)  # ⏸️ Optional pause
 
         # Combine into full trajectory
         self.theta_traj = np.vstack(theta_traj_list)
