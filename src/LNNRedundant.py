@@ -10,7 +10,7 @@ from scipy.integrate import solve_ivp
 
 import matplotlib.pyplot as plt
 import numpy as np
-
+import time
 # ========================
 # Robot Definition: PA10
 # ========================
@@ -36,13 +36,15 @@ W = np.eye(n)
 #theta_goal = np.array([0.1 , -1.0, 0, 2.0, 0, 3.8, 0.0])
 #theta_goal = np.array([-1.9, -1.10, -0.10, 2.14, -0.110, 3.8, 2.59270569])
 theta_list = [
+    
+    #np.array([0.0, 0, 0, 0, 0, 0, 0.0]),
     np.array([0.1, -1.0, 0, 2.0, 0, 3.8, 0.0]),
-    np.array([-0.017, 0.487, 0.049, 1.977, 3.14072, 0.855 , 0.078]),
-    np.array([-0.017, 0.753, 0.049, 1.098, -3.14072, 0.24 , 0.078]),
-    np.array([-0.017, 0.984, 0.049, 1.098, 3.1472, 0.545 , 0.078]),
-    #np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.078]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.078]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.078]),
+    np.array([-0.017, 0.487, 0.049, 1.977, 3.14072, 0.855 , 0.0]),
+    np.array([-0.017, 0.753, 0.049, 1.098, -3.14072, 0.24 , 0.0]),
+    np.array([-0.017, 0.984, 0.049, 1.098, 3.1472, 0.545 , 0.0]),
+    np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
+    np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
+    np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
     #np.array([0.001, 0.001, 0.001, 0.001, 0.001, -0.001 , 0.001])
 
 
@@ -117,8 +119,11 @@ class LNNNode(Node):
         super().__init__('lnn_sim_node')
         self.publisher_ = self.create_publisher(JointState, '/joint_states', 10)
         self.timer_period = 0.01  # 100 Hz
-        self.joint_names = ["S1", "S2", "S3", "E1", "E2", "W1", "W2"]
 
+        self.joint_names = [
+            'S1', 'S2', 'S3', 'E1', 'E2', 'W1', 'W2',  # existing joints
+            'finger_1_joint', 'finger_2_joint'        # new finger joints
+        ]
         y_current = np.zeros(2 * n + m)
         t_span = (0, 10)  # Give enough time to converge
         t_eval = np.linspace(*t_span, 1000)
@@ -159,11 +164,16 @@ class LNNNode(Node):
             self.get_logger().info("✅ Simulation complete.")
             self.timer.cancel()
             return
+        
+        
+        # Example: add static claw positions (e.g. open)
+        claw_1_angle = np.sin(time.time()) * 0.02  # just an example animation
+        claw_2_angle = np.sin(time.time()) * 0.02
 
         joint_state = JointState()
         joint_state.header.stamp = self.get_clock().now().to_msg()
         joint_state.name = self.joint_names
-        joint_state.position = self.theta_traj[self.step].tolist()
+        joint_state.position = self.theta_traj[self.step].tolist() + [claw_1_angle, claw_2_angle]
         self.publisher_.publish(joint_state)
 
         self.step += 1
