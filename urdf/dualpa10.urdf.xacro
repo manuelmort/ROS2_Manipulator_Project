@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<robot name="dual_pa10" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- World frame -->
+  <link name="world"/>
+
+  <!-- Include two robots -->
+  <xacro:include filename="$(find manipulatorws)/urdf/pa10.urdf.xacro"/>
+  <xacro:pa10 prefix="robot1_"/>
+
+  <xacro:include filename="$(find manipulatorws)/urdf/pa10.urdf.xacro"/>
+  <xacro:pa10 prefix="robot2_"/>
+
+  <!-- Fix robot1 to world -->
+  <joint name="robot1_base_joint" type="fixed">
+    <parent link="world"/>
+    <child link="robot1_base_link"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+
+  <!-- Fix robot2 to world, offset in X -->
+  <joint name="robot2_base_joint" type="fixed">
+    <parent link="world"/>
+    <child link="robot2_base_link"/>
+    <origin xyz="1.5 0 0" rpy="0 0 0"/>
+  </joint>
+
+</robot>

@@ -2,7 +2,6 @@
 
 <robot name="pa10" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-
 	<!-- Used for fixing robot to Gazebo 'base_link' -->
   <link name="world"/>
 
@@ -255,12 +254,15 @@
                     <mesh filename="file://$(find manipulatorws)/meshes/gripper_stl/finger.stl" scale="0.001 0.001 0.001"/>
                 </geometry>
             </collision>
-            <!--inertial-->
-                <!--mass value="${mass_gripper}"/-->
-                <!-- <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/> -->
-                <!-- <xacro:inertia_box height="${inertia_height_gripper}" mass="${mass_gripper}"/> -->
-                <!--inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/-->
-            <!--inertial-->
+          <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="0.01"/>
+            <inertia
+              ixx="0.00001" ixy="0.0" ixz="0.0"
+              iyy="0.00001" iyz="0.0"
+              izz="0.00001"/>
+          </inertial>
+
         </link>
 
 
@@ -280,13 +282,15 @@
                     <mesh filename="file://$(find manipulatorws)/meshes/gripper_stl/finger_left.stl" scale="0.001 0.001 0.001"/>
                 </geometry>
             </collision>
-            <!--inertial-->
-                <!--mass value="${mass_gripper}"/-->
-                <!-- <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/> -->
-                <!-- <xacro:inertia_box height="${inertia_height_gripper}" mass="${mass_gripper}"/> -->
-                <!--inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/-->
+              <inertial>
+                <origin xyz="0 0 0" rpy="0 0 0"/>
+                <mass value="0.01"/>
+                <inertia
+                  ixx="0.00001" ixy="0.0" ixz="0.0"
+                  iyy="0.00001" iyz="0.0"
+                  izz="0.00001"/>
+              </inertial>
 
-            <!--/inertial-->
         </link>
   
 
@@ -364,7 +368,6 @@
   <axis xyz="0 0 1"/> <!-- Opposite direction to finger_1 -->
   <limit lower="0.0" upper="0.02" effort="10.0" velocity="0.02"/>
 </joint>
-
 
 
 </robot>
