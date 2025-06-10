@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="pa10">
+
+  <!-- Arguments -->
+  <xacro:arg name="robot_name" default="pa10"/>
+  <xacro:arg name="add_world" default="true"/>
+  <xacro:arg name="use_gazebo" default="true"/>
+
+  <!-- Include visuals, links, and joints -->
+  <xacro:include filename="$(find manipulatorws)/urdf/pa10.urdf.xacro"/>
+
+  <!-- Optional gripper is already inside pa10.urdf.xacro -->
+
+  <!-- Load ROS2 Control plugin for Gazebo -->
+  <xacro:include filename="$(find manipulatorws)/urdf/controls/gazebo_sim_ros2_control.urdf.xacro"/>
+  <xacro:load_gazebo_sim_ros2_control_plugin
+    robot_name="$(arg robot_name)"
+    use_gazebo="$(arg use_gazebo)"/>
+
+  <!-- Load ros2_control joint interfaces -->
+  <xacro:include filename="$(find manipulatorws)/urdf/controls/pa10_ros2_control.urdf.xacro"/>
+  <xacro:pa10_ros2_control use_gazebo="$(arg use_gazebo)"/>
+
+</robot>

@@ -1,42 +1,47 @@
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, ExecuteProcess
+from launch.actions import DeclareLaunchArgument, ExecuteProcess, SetEnvironmentVariable, RegisterEventHandler, LogInfo
+from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
-    # Launch arguments for position
     declared_args = [
         DeclareLaunchArgument('x', default_value='0'),
         DeclareLaunchArgument('y', default_value='0'),
-        DeclareLaunchArgument('z', default_value='1'),
+        DeclareLaunchArgument('z', default_value='0.01'),
         DeclareLaunchArgument('yaw', default_value='0'),
     ]
 
-    # Paths
     pkg_share = FindPackageShare('manipulatorws')
-    xacro_path = PathJoinSubstitution([pkg_share, 'urdf', 'pa10.urdf.xacro'])
+    xacro_path = PathJoinSubstitution([pkg_share, 'urdf', 'pa10_gazebo.urdf.xacro'])
+    yaml_file = PathJoinSubstitution([pkg_share, 'config', 'control.yaml'])
     world_path = PathJoinSubstitution([pkg_share, 'worlds', 'pa10_world.world'])
-    controller_yaml = PathJoinSubstitution([pkg_share, 'config', 'control.yaml'])
+    robot_description = Command(['xacro', ' ', xacro_path])
 
-    # Robot Description
-    robot_description = Command(['xacro ', xacro_path])
-
-    # Node: Robot State Publisher
-    robot_state_publisher = Node(
-        package='robot_state_publisher',
-        executable='robot_state_publisher',
-        parameters=[{'robot_description': robot_description}],
-        output='screen'
-    )
-
-    # Process: Launch Gazebo world
     gz_world = ExecuteProcess(
         cmd=['gz', 'sim', world_path],
         output='screen'
     )
 
-    # Process: Spawn robot in Gazebo
+    set_gz_plugin_env = SetEnvironmentVariable(
+        name='GZ_SIM_SYSTEM_PLUGIN_PATH',
+        value='/opt/ros/jazzy/lib'
+    )
+
+    set_ld_library_path = SetEnvironmentVariable(
+        name='LD_LIBRARY_PATH',
+        value='/opt/ros/jazzy/lib'
+    )
+
+
+    robot_state_publisher = Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        parameters=[{'robot_description': robot_description}, {'use_sim_time': True}], 
+        output='screen'
+    )
+
     spawn_entity = ExecuteProcess(
         cmd=[
             'ros2', 'run', 'ros_gz_sim', 'create',
@@ -49,40 +54,72 @@ def generate_launch_description():
         ],
         output='screen'
     )
-
-    # Node: Controller Manager
-    controller_manager = Node(
-        package='controller_manager',
-        executable='ros2_control_node',
-        parameters=[{'robot_description': robot_description}, controller_yaml],
-        output='screen'
-    )
-
-    # Process: Spawner for joint_state_broadcaster
     spawner_jsb = ExecuteProcess(
-        cmd=[
-            'ros2', 'run', 'controller_manager', 'spawner',
-            'joint_state_broadcaster',
-            '--controller-manager', '/controller_manager'
-        ],
+        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'joint_state_broadcaster'],
         output='screen'
     )
 
-    # Process: Spawner for position_controller
-    spawner_pos = ExecuteProcess(
-        cmd=[
-            'ros2', 'run', 'controller_manager', 'spawner',
-            'position_controller',
-            '--controller-manager', '/controller_manager'
-        ],
+    spawner_arm = ExecuteProcess(
+        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'arm_controller'],
+        output='screen'
+    )
+
+    spawner_gripper = ExecuteProcess(
+        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'gripper_action_controller'],
+        output='screen'
+    )
+    
+    lnn_control_node = Node(
+        package='manipulatorws',
+        executable='lnn_control_node.py',
+        name='lnn_control_node',
+        parameters=[{'use_sim_time': True}],
+        output='screen'
+    )
+
+    load_jsb = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawn_entity,
+            on_exit=[spawner_jsb],
+        )
+    )
+
+    load_arm = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawner_jsb,
+            on_exit=[spawner_arm],
+        )
+    )
+
+    load_gripper = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawner_arm,
+            on_exit=[spawner_gripper],
+        )
+    )
+
+    launch_lnn_node = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawner_arm,
+            on_exit=[lnn_control_node],
+        )
+    )
+
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
         output='screen'
     )
 
     return LaunchDescription(declared_args + [
+        set_gz_plugin_env,
         gz_world,
         robot_state_publisher,
-        controller_manager,
         spawn_entity,
-        spawner_jsb,
-        spawner_pos
+        load_jsb,
+        load_arm,
+        #load_gripper,
+        #launch_lnn_node,
+        bridge
     ])

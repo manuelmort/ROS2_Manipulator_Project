@@ -1,0 +1,61 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="pa10_ros2_control" params="use_gazebo">
+
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+          <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+        
+        </hardware>
+
+      <!-- PA10 revolute joints -->
+      <joint name="S1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="S2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="S3">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="E1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="E2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="W1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="W2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+
+      <!-- Gripper prismatic joints -->
+      <joint name="finger_1_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="finger_2_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+
+
+
+
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

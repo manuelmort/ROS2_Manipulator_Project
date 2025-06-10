@@ -3,7 +3,7 @@
 
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import Float64MultiArray
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 from roboticstoolbox import DHRobot, RevoluteDH
 from scipy.integrate import solve_ivp
@@ -35,7 +35,7 @@ C2 = 2e-3 * np.eye(m)
 W = np.eye(n)
 
 theta_list = [
-    np.array([0.1, -1.0, 0.0, 2.0, 0.0, 3.8, 0.0]),
+    np.array([0.1, -1.0, 0.0, 2.0, 0.0, 1.57, 0.0]),
 ]
 
 def dynamics_loop(theta_goal):
@@ -71,13 +71,12 @@ class LNNControlNode(Node):
     def __init__(self):
         super().__init__('lnn_control_node')
 
-        # Publisher to ros2_control
+        # ✅ Correct message type
         self.publisher_ = self.create_publisher(
-            Float64MultiArray,
-            '/position_controller/commands',
+            JointTrajectory,
+            '/arm_controller/joint_trajectory',
             10
         )
-
         self.timer_period = 0.01  # 100 Hz
 
         # Solve trajectories
@@ -117,10 +116,18 @@ class LNNControlNode(Node):
             self.timer.cancel()
             return
 
-        msg = Float64MultiArray()
-        msg.data = self.theta_traj[self.step].tolist()
-        self.publisher_.publish(msg)
+        msg = JointTrajectory()
+        msg.joint_names = [
+            'S1', 'S2', 'S3', 'E1', 'E2', 'W1', 'W2',
+            'finger_1_joint', 'finger_2_joint'
+        ]
 
+        point = JointTrajectoryPoint()
+        point.positions = self.theta_traj[self.step].tolist() + [0.0, 0.0]  # pad finger joints
+        point.time_from_start = rclpy.duration.Duration(seconds=0.01 * self.step).to_msg()
+
+        msg.points = [point]
+        self.publisher_.publish(msg)
         self.step += 1
 
 

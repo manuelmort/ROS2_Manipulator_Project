@@ -2,9 +2,8 @@
 
 <robot name="pa10" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-	<!-- Used for fixing robot to Gazebo 'base_link' -->
   <link name="world"/>
-
+  
   <joint name="fixed" type="fixed">
     <parent link="world"/>
     <child link="base_link"/>
@@ -296,78 +295,80 @@
 
 
 
-<joint name="S1" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.2"/>
-    <parent link="base_link"/>
-    <child link="link_1"/>
-    <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-3.089" upper="3.089" velocity="1.0"/>
-  </joint>
-<joint name="S2" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.117"/>
-    <parent link="link_1"/>
-    <child link="link_2"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="0" lower="-1.64" upper="1.64" velocity="1.0"/>
-  </joint>
-<joint name="S3" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.317"/>
-    <parent link="link_2"/>
-    <child link="link_3"/>
-    <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-3.036" upper="3.036" velocity="1.0"/>
-  </joint>
-<joint name="E1" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.133"/>
-    <parent link="link_3"/>
-    <child link="link_4"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="0" lower="-2.39" upper="2.39" velocity="1.0"/>
-  </joint>
-<joint name="E2" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.285"/>
-    <parent link="link_4"/>
-    <child link="link_5"/>
-    <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-4.45" upper="4.45" velocity="1.0"/>
-  </joint>
-<joint name="W1" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0.195"/>
-    <parent link="link_5"/>
-    <child link="link_6"/>
-    <axis xyz="0 1 0"/>
-    <limit effort="0" lower="-2.878" upper="2.878" velocity="1.0"/>
-  </joint>
-  <joint name = "W2" type="revolute">
-    <origin rpy="0 0 0" xyz="0 0 0"/>
-    <parent link="link_6"/>
-    <child link="ee_link"/>
-    <axis xyz="0 0 1"/>
-    <limit effort="0" lower="-2.878" upper="2.878" velocity="1.0"/>
-  </joint>
+
+  <joint name="S1" type="revolute">
+      <origin rpy="0 0 0" xyz="0 0 0.2"/>
+      <parent link="base_link"/>
+      <child link="link_1"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="100" lower="-3.089" upper="3.089" velocity="1.0"/>
+    </joint>
+  <joint name="S2" type="revolute">
+      <origin rpy="0 0 0" xyz="0 0 0.117"/>
+      <parent link="link_1"/>
+      <child link="link_2"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="100" lower="-1.64" upper="1.64" velocity="1.0"/>
+    </joint>
+  <joint name="S3" type="revolute">
+      <origin rpy="0 0 0" xyz="0 0 0.317"/>
+      <parent link="link_2"/>
+      <child link="link_3"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="100" lower="-3.036" upper="3.036" velocity="1.0"/>
+    </joint>
+  <joint name="E1" type="revolute">
+      <origin rpy="0 0 0" xyz="0 0 0.133"/>
+      <parent link="link_3"/>
+      <child link="link_4"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="100" lower="-2.39" upper="2.39" velocity="1.0"/>
+    </joint>
+  <joint name="E2" type="revolute">
+      <origin rpy="0 0 0" xyz="0 0 0.285"/>
+      <parent link="link_4"/>
+      <child link="link_5"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="100" lower="-4.45" upper="4.45" velocity="1.0"/>
+    </joint>
+  <joint name="W1" type="revolute">
+      <origin rpy="0 0 0" xyz="0 0 0.195"/>
+      <parent link="link_5"/>
+      <child link="link_6"/>
+      <axis xyz="0 1 0"/>
+      <limit effort="100" lower="-2.878" upper="2.878" velocity="1.0"/>
+    </joint>
+    <joint name = "W2" type="revolute">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <parent link="link_6"/>
+      <child link="ee_link"/>
+      <axis xyz="0 0 1"/>
+      <limit effort="100" lower="-2.878" upper="2.878" velocity="1.0"/>
+    </joint>
 
 
-  <joint name="gripper_joint" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0.045"/>   
-    <parent link="ee_link"/>
-    <child link="link_gripper_base"/>
+    <joint name="gripper_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0.045"/>   
+      <parent link="ee_link"/>
+      <child link="link_gripper_base"/>
+    </joint>
+
+  <joint name="finger_1_joint" type="prismatic">
+    <parent link="link_gripper_base"/>
+    <child link="link_finger_1"/>
+    <origin rpy="-1.57079 0 0" xyz="0 -0.04 0.11"/>  
+    <axis xyz="0 0 1"/> <!-- Moves along Y-axis (adjust if necessary) -->
+    <limit lower="0.0" upper="0.02" effort="10.0" velocity="0.02"/>
   </joint>
 
-<joint name="finger_1_joint" type="prismatic">
-  <parent link="link_gripper_base"/>
-  <child link="link_finger_1"/>
-  <origin rpy="-1.57079 0 0" xyz="0 ${-0.03-0.01} 0.11"/>
-  <axis xyz="0 0 1"/> <!-- Moves along Y-axis (adjust if necessary) -->
-  <limit lower="0.0" upper="0.02" effort="10.0" velocity="0.02"/>
-</joint>
+  <joint name="finger_2_joint" type="prismatic">
+    <parent link="link_gripper_base"/>
+    <child link="link_finger_2"/>
+    <origin rpy="1.57079 0 0" xyz="0 0.04 0.11"/>  
+    <axis xyz="0 0 1"/> <!-- Opposite direction to finger_1 -->
+    <limit lower="0.0" upper="0.02" effort="10.0" velocity="0.02"/>
+  </joint>
 
-<joint name="finger_2_joint" type="prismatic">
-  <parent link="link_gripper_base"/>
-  <child link="link_finger_2"/>
-  <origin rpy="1.57079 0 0" xyz="0 ${0.03+0.01} 0.11"/>
-  <axis xyz="0 0 1"/> <!-- Opposite direction to finger_1 -->
-  <limit lower="0.0" upper="0.02" effort="10.0" velocity="0.02"/>
-</joint>
 
 
 </robot>
