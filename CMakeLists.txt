@@ -26,5 +26,10 @@ install(
     nodes/lnn_control_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
+install(
+  PROGRAMS
+    nodes/LNNrviz.py
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_package()
