@@ -351,6 +351,8 @@
       <origin rpy="0 0 0" xyz="0 0 0.045"/>   
       <parent link="ee_link"/>
       <child link="link_gripper_base"/>
+      <limit effort="100" lower="-2.878" upper="2.878" velocity="1.0"/>
+
     </joint>
 
   <joint name="finger_1_joint" type="prismatic">

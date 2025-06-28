@@ -4,6 +4,7 @@
 import rclpy
 from rclpy.node import Node
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from std_msgs.msg import Float64MultiArray, String
 
 from roboticstoolbox import DHRobot, RevoluteDH
 from scipy.integrate import solve_ivp
@@ -35,7 +36,22 @@ C2 = 2e-3 * np.eye(m)
 W = np.eye(n)
 
 theta_list = [
-    np.array([0.1, -1.0, 0.0, 2.0, 0.0, 1.57, 0.0]),
+    #np.array([0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0]),
+
+    #np.array([0.1, -1.0, 0.0, 2.0, 0.0, -1.57, 0.0]),
+    #np.array([-0.017, 0.487, 0.049, 1.977, 3.14072, 0.855 , 0.0]),
+
+    np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
+    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
+    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
+
+    #np.array([-0.017, 0.487, 0.049, 1.977, 3.14072, 0.855 , 0.0]),
+    #np.array([-0.017, 0.753, 0.049, 1.098, -3.14072, 0.24 , 0.0]),
+    #np.array([-0.017, 0.984, 0.049, 1.098, 3.1472, 0.545 , 0.0]),
+    #np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
+    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
+    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
+
 ]
 
 def dynamics_loop(theta_goal):
@@ -60,74 +76,71 @@ def dynamics_loop(theta_goal):
     def reached_goal(t, y):
         theta = y[0:n]
         error = np.linalg.norm(theta - theta_goal)
-        return error - 0.05
+        return error - 0.5
 
     reached_goal.terminal = True
     reached_goal.direction = -1
     return dynamics, reached_goal
 
 
+from std_msgs.msg import Float64MultiArray
+
 class LNNControlNode(Node):
     def __init__(self):
         super().__init__('lnn_control_node')
 
-        # ✅ Correct message type
-        self.publisher_ = self.create_publisher(
-            JointTrajectory,
-            '/arm_controller/joint_trajectory',
-            10
-        )
-        self.timer_period = 0.01  # 100 Hz
+        self.trajectory_pub = self.create_publisher(JointTrajectory, '/arm_controller/joint_trajectory', 10)
+        self.target_sub = self.create_subscription(Float64MultiArray, '/next_target', self.new_target_callback, 10)
+        self.complete_pub = self.create_publisher(String, '/arm_controller/complete', 10)
 
-        # Solve trajectories
+        self.current_trajectory = None
+        self.step = 0
+        self.timer = self.create_timer(0.01, self.send_command)
+        self.executing = False
+
+    def new_target_callback(self, msg: Float64MultiArray):
+        theta_goal = np.array(msg.data)
+        self.get_logger().info(f"🎯 New target received: {theta_goal.tolist()}")
+
         y_current = np.zeros(2 * n + m)
         t_span = (0, 10)
-        t_eval = np.linspace(*t_span, 800)
-        theta_traj_list = []
+        t_eval = np.linspace(*t_span, 500)
 
-        for i, theta_goal in enumerate(theta_list):
-            self.get_logger().info(f"🧭 Solving trajectory {i+1}/{len(theta_list)}")
+        dynamics_fn, stop_event = dynamics_loop(theta_goal)
+        sol = solve_ivp(
+            dynamics_fn, t_span, y_current, t_eval=t_eval,
+            events=stop_event, method='RK45',
+            rtol=1e-6, atol=1e-9
+        )
 
-            dynamics_fn, stop_event = dynamics_loop(theta_goal)
-            sol = solve_ivp(
-                dynamics_fn,
-                t_span,
-                y_current,
-                t_eval=t_eval,
-                events=stop_event,
-                method='RK45',
-                rtol=1e-6,
-                atol=1e-9
-            )
-
-            theta_segment = sol.y[0:n, :].T
-            theta_traj_list.append(theta_segment)
-            y_current = sol.y[:, -1]
-
-            time.sleep(1)
-
-        self.theta_traj = np.vstack(theta_traj_list)
+        theta_segment = sol.y[0:n, :].T
+        self.current_trajectory = theta_segment
         self.step = 0
-        self.timer = self.create_timer(self.timer_period, self.send_command)
+        self.executing = True
+        self.get_logger().info("🚀 Trajectory planning complete.")
 
     def send_command(self):
-        if self.step >= len(self.theta_traj):
-            self.get_logger().info("✅ LNN Simulation complete.")
-            self.timer.cancel()
+        if not self.executing or self.current_trajectory is None:
+            return
+
+        if self.step >= len(self.current_trajectory):
+            self.executing = False
+            self.get_logger().info("Trajectory execution complete.")
+
+            msg = String()
+            msg.data = "Complete"
+            self.complete_pub.publish(msg)
+            self.get_logger().info(f"Asking for next trajectory....")
             return
 
         msg = JointTrajectory()
-        msg.joint_names = [
-            'S1', 'S2', 'S3', 'E1', 'E2', 'W1', 'W2',
-            'finger_1_joint', 'finger_2_joint'
-        ]
-
+        msg.joint_names = ['S1', 'S2', 'S3', 'E1', 'E2', 'W1', 'W2', 'finger_1_joint', 'finger_2_joint']
         point = JointTrajectoryPoint()
-        point.positions = self.theta_traj[self.step].tolist() + [0.0, 0.0]  # pad finger joints
+        point.positions = self.current_trajectory[self.step].tolist() + [0.0, 0.0]
         point.time_from_start = rclpy.duration.Duration(seconds=0.01 * self.step).to_msg()
-
         msg.points = [point]
-        self.publisher_.publish(msg)
+
+        self.trajectory_pub.publish(msg)
         self.step += 1
 
 

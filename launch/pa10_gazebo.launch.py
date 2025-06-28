@@ -4,6 +4,7 @@ from launch.event_handlers import OnProcessExit
 from launch.substitutions import LaunchConfiguration, Command, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch.substitutions import Command
 
 def generate_launch_description():
     declared_args = [
@@ -17,10 +18,12 @@ def generate_launch_description():
     xacro_path = PathJoinSubstitution([pkg_share, 'urdf', 'pa10_gazebo.urdf.xacro'])
     yaml_file = PathJoinSubstitution([pkg_share, 'config', 'control.yaml'])
     world_path = PathJoinSubstitution([pkg_share, 'worlds', 'pa10_world.world'])
-    robot_description = Command(['xacro', ' ', xacro_path])
+    robot_description = Command(['xacro ', ' ', xacro_path])
+    lnn_script_path = PathJoinSubstitution([pkg_share,'nodes','lnn_control_node.py'])
+
 
     gz_world = ExecuteProcess(
-        cmd=['gz', 'sim', world_path],
+        cmd=['gz', 'sim','-r', world_path],
         output='screen'
     )
 
@@ -69,13 +72,19 @@ def generate_launch_description():
         output='screen'
     )
     
+
+
+
     lnn_control_node = Node(
         package='manipulatorws',
-        executable='lnn_control_node.py',
+        executable='lnn_control_node.py',  # This matches your script name
         name='lnn_control_node',
-        parameters=[{'use_sim_time': True}],
-        output='screen'
+        output='screen',
+        parameters=[{'use_sim_time': True}]
     )
+
+
+
 
     load_jsb = RegisterEventHandler(
         event_handler=OnProcessExit(
@@ -97,14 +106,14 @@ def generate_launch_description():
             on_exit=[spawner_gripper],
         )
     )
-
+    '''
     launch_lnn_node = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawner_arm,
             on_exit=[lnn_control_node],
         )
     )
-
+    '''
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
@@ -120,6 +129,6 @@ def generate_launch_description():
         load_jsb,
         load_arm,
         #load_gripper,
-        #launch_lnn_node,
+        lnn_control_node,
         bridge
     ])

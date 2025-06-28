@@ -24,6 +24,7 @@ install(DIRECTORY meshes urdf rviz launch worlds config
 install(
   PROGRAMS
     nodes/lnn_control_node.py
+    nodes/list_traj.py
   DESTINATION lib/${PROJECT_NAME}
 )
 install(
