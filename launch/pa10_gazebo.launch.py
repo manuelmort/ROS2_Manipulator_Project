@@ -83,9 +83,6 @@ def generate_launch_description():
         parameters=[{'use_sim_time': True}]
     )
 
-
-
-
     load_jsb = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,

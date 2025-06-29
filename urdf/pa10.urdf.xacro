@@ -360,7 +360,7 @@
     <child link="link_finger_1"/>
     <origin rpy="-1.57079 0 0" xyz="0 -0.04 0.11"/>  
     <axis xyz="0 0 1"/> <!-- Moves along Y-axis (adjust if necessary) -->
-    <limit lower="0.0" upper="0.02" effort="10.0" velocity="0.02"/>
+    <limit lower="100.0" upper="0.02" effort="10.0" velocity="0.02"/>
   </joint>
 
   <joint name="finger_2_joint" type="prismatic">
@@ -368,7 +368,7 @@
     <child link="link_finger_2"/>
     <origin rpy="1.57079 0 0" xyz="0 0.04 0.11"/>  
     <axis xyz="0 0 1"/> <!-- Opposite direction to finger_1 -->
-    <limit lower="0.0" upper="0.02" effort="10.0" velocity="0.02"/>
+    <limit lower="100.0" upper="0.02" effort="10.0" velocity="0.02"/>
   </joint>
 
 
