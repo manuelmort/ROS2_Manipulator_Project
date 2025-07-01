@@ -35,25 +35,6 @@ C1 = 2e-3 * np.eye(n)
 C2 = 2e-3 * np.eye(m)
 W = np.eye(n)
 
-theta_list = [
-    #np.array([0.0, 0.0, 0.0, 0.0, 0.0,0.0, 0.0]),
-
-    #np.array([0.1, -1.0, 0.0, 2.0, 0.0, -1.57, 0.0]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 3.14072, 0.855 , 0.0]),
-
-    np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-
-    #np.array([-0.017, 0.487, 0.049, 1.977, 3.14072, 0.855 , 0.0]),
-    #np.array([-0.017, 0.753, 0.049, 1.098, -3.14072, 0.24 , 0.0]),
-    #np.array([-0.017, 0.984, 0.049, 1.098, 3.1472, 0.545 , 0.0]),
-    #np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-
-]
-
 def dynamics_loop(theta_goal):
     def dynamics(t, y):
         theta = y[0:n]
@@ -76,7 +57,7 @@ def dynamics_loop(theta_goal):
     def reached_goal(t, y):
         theta = y[0:n]
         error = np.linalg.norm(theta - theta_goal)
-        return error - 0.5
+        return error - 0.01
 
     reached_goal.terminal = True
     reached_goal.direction = -1
