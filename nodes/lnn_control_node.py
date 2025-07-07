@@ -4,13 +4,13 @@
 import rclpy
 from rclpy.node import Node
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
+from sensor_msgs.msg import JointState
 from std_msgs.msg import Float64MultiArray, String
 
 from roboticstoolbox import DHRobot, RevoluteDH
 from scipy.integrate import solve_ivp
 
 import numpy as np
-import time
 
 # ========================
 # Robot Definition: PA10
@@ -35,9 +35,9 @@ C1 = 2e-3 * np.eye(n)
 C2 = 2e-3 * np.eye(m)
 W = np.eye(n)
 
-def dynamics_loop(theta_goal):
+def dynamics_loop(initial_theta, theta_goal):
     def dynamics(t, y):
-        theta = y[0:n]
+        theta = initial_theta
         v = y[n:2*n]
         u = y[2*n:2*n + m]
 
@@ -64,8 +64,6 @@ def dynamics_loop(theta_goal):
     return dynamics, reached_goal
 
 
-from std_msgs.msg import Float64MultiArray
-
 class LNNControlNode(Node):
     def __init__(self):
         super().__init__('lnn_control_node')
@@ -73,21 +71,36 @@ class LNNControlNode(Node):
         self.trajectory_pub = self.create_publisher(JointTrajectory, '/arm_controller/joint_trajectory', 10)
         self.target_sub = self.create_subscription(Float64MultiArray, '/next_target', self.new_target_callback, 10)
         self.complete_pub = self.create_publisher(String, '/arm_controller/complete', 10)
+        self.joint_state_sub = self.create_subscription(JointState, '/joint_states', self.joint_state_callback, 10)
 
+        self.current_theta = np.zeros(n)
+        self.joint_state_ready = False  # <-- NEW
         self.current_trajectory = None
         self.step = 0
-        self.timer = self.create_timer(0.01, self.send_command)
         self.executing = False
+        self.timer = self.create_timer(0.01, self.send_command)
+
+    def joint_state_callback(self, msg):
+        if len(msg.position) >= n:
+            self.current_theta = np.array(msg.position[:n])
+            self.joint_state_ready = True  # <-- FLAG SET HERE
 
     def new_target_callback(self, msg: Float64MultiArray):
+        if not self.joint_state_ready:
+            self.get_logger().warn("⚠️ Ignoring target: waiting for /joint_states to initialize.")
+            return
+
         theta_goal = np.array(msg.data)
         self.get_logger().info(f"🎯 New target received: {theta_goal.tolist()}")
+        self.get_logger().info(f"📍 Trajectory starts from: {self.current_theta.tolist()}")
 
         y_current = np.zeros(2 * n + m)
+        y_current[0:n] = self.current_theta  # Start from current joint state
+
         t_span = (0, 10)
         t_eval = np.linspace(*t_span, 500)
 
-        dynamics_fn, stop_event = dynamics_loop(theta_goal)
+        dynamics_fn, stop_event = dynamics_loop(self.current_theta, theta_goal)
         sol = solve_ivp(
             dynamics_fn, t_span, y_current, t_eval=t_eval,
             events=stop_event, method='RK45',
@@ -106,12 +119,12 @@ class LNNControlNode(Node):
 
         if self.step >= len(self.current_trajectory):
             self.executing = False
-            self.get_logger().info("Trajectory execution complete.")
+            self.get_logger().info("✅ Trajectory execution complete.")
 
             msg = String()
             msg.data = "Complete"
             self.complete_pub.publish(msg)
-            self.get_logger().info(f"Asking for next trajectory....")
+            self.get_logger().info("📦 Published 'Complete' message.")
             return
 
         msg = JointTrajectory()
