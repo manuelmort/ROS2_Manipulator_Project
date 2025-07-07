@@ -25,8 +25,10 @@ This repository simulates a Mitsubishi PA-10 robotic arm in **ROS 2 Jazzy** usin
 
 ## 🚀 Requirements
 
-- ROS 2 Jazzy
-- Python 3.10+
+- ROS 2 Jazzy and Gazebo
+- Ubuntu 24.04 with Python 3.12
+- Python 3.11 (Virtual env) `python3.11 -m venv ~/venvs/my_venv` to run nodes that include roboticstoolbox-python, from here we can use pip to install our dependencies.
+
 - Dependencies:
   - `rclpy`
   - `roboticstoolbox-python`
@@ -38,7 +40,11 @@ This repository simulates a Mitsubishi PA-10 robotic arm in **ROS 2 Jazzy** usin
 Install with:
 
 ```bash
-pip install roboticstoolbox-python spatialmath scipy matplotlib numpy
-
+pip install roboticstoolbox-python spatialmath scipy matplotlib numpy<2"
 ```
+
+Notes: 
+
+roboticstoolbox-python should be replaced in the future with better DH solvers out there if software doesn't get updated to be compatible with python 3.12.
+
 ### 

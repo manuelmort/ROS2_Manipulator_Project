@@ -15,7 +15,7 @@ def generate_launch_description():
     ]
 
     pkg_share = FindPackageShare('manipulatorws')
-    xacro_path = PathJoinSubstitution([pkg_share, 'urdf', 'pa10_gazebo.urdf.xacro'])
+    xacro_path = PathJoinSubstitution([pkg_share, 'urdf', 'dual_pa10.urdf.xacro'])
     yaml_file = PathJoinSubstitution([pkg_share, 'config', 'control.yaml'])
     world_path = PathJoinSubstitution([pkg_share, 'worlds', 'pa10_world.world'])
     robot_description = Command(['xacro ', ' ', xacro_path])
