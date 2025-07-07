@@ -24,7 +24,7 @@
           <mesh filename="file://$(find manipulatorws)/meshes/pa10_stl/S1.stl"/>
         </geometry>
         <material name="">
-          <color rgba="0.34 0.35 0.36 1.0"/>
+          <color rgba="0.1 0.9 1.0 0.4"/> <!-- Bright cyan glow, semi-transparent -->
         </material>
       </visual>
       <collision>
@@ -49,9 +49,9 @@
           <mesh filename="file://$(find manipulatorws)/meshes/pa10_stl/S2.stl"/>
 
         </geometry>
-    <material name="">
-          <color rgba="0.7 0.0 0.0 1.0"/>
-        </material>
+      <material name="">
+        <color rgba="0.0 1.0 1.0 0.4"/> <!-- RGB = Cyan, A = 30% visible --> 
+      </material>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0.117"/>
@@ -76,7 +76,7 @@
 
         </geometry>
         <material name="">
-          <color rgba="0.34 0.35 0.36 1.0"/>
+          <color rgba="0.0 1.0 1.0 0.4"/> <!-- RGB = Cyan, A = 30% visible -->
         </material>
       </visual>
       <collision>
@@ -101,9 +101,8 @@
           <mesh filename="file://$(find manipulatorws)/meshes/pa10_stl/E1.stl"/>
 
         </geometry>
-    <material name="">
-          <color rgba="0.7 0.0 0.0 1.0"/>
-        </material>
+      <material name="">
+        <color rgba="0.0 1.0 1.0 0.4"/> <!-- RGB = Cyan, A = 30% visible -->      </material>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0.133"/>
@@ -127,9 +126,9 @@
           <mesh filename="file://$(find manipulatorws)/meshes/pa10_stl/E2.stl"/>
 
         </geometry>
-    <material name="">
-          <color rgba="0.34 0.35 0.36 1.0"/>
-        </material>
+      <material name="">
+        <color rgba="0.0 1.0 1.0 0.4"/> <!-- RGB = Cyan, A = 30% visible --> 
+      </material>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0.003 0"/>
@@ -153,9 +152,9 @@
           <mesh filename="file://$(find manipulatorws)/meshes/pa10_stl/W1.stl"/>
 
         </geometry>
-    <material name="">
-          <color rgba="0.7 0.0 0.0 1.0"/>
-        </material>
+      <material name="">
+        <color rgba="0.0 1.0 1.0 0.4"/> <!-- RGB = Cyan, A = 30% visible --> 
+      </material>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0.195"/>
@@ -179,9 +178,10 @@
           <mesh filename="file://$(find manipulatorws)/meshes/pa10_stl/W2.stl"/>
 
         </geometry>
-    <material name="">
-          <color rgba="0.34 0.35 0.36 1.0"/>
-        </material>
+      <material name="hologram_cyan">
+        <color rgba="0.1 1.0 1.0 0.4"/> <!-- RGB = Cyan, A = 30% visible --> 
+      </material>
+
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0 0"/>
@@ -215,7 +215,7 @@
           <mesh filename="file://$(find manipulatorws)/meshes/gripper_stl/pa10_gripper_base.stl"/>
         </geometry>
         <material name="">
-          <color rgba="0.8 0.0 0.0 1.0"/> <!-- red for visibility -->
+          <color rgba="0.0 1.0 1.0 0.5"/> <!-- RGB = Cyan, A = 30% visible --> 
         </material>
       </visual>
       <collision>
@@ -241,7 +241,7 @@
                       <mesh filename="file://$(find manipulatorws)/meshes/gripper_stl/finger.stl" scale="0.001 0.001 0.001"/>
                   </geometry>
                   <material name="">
-                    <color rgba="0.9 0.75 0.3 1.0"/>
+                    <color rgba="0.0 1.0 1.0 0.4"/> <!-- RGB = Cyan, A = 30% visible --> 
                   </material>
               </visual>
               <collision>
@@ -269,7 +269,7 @@
                       <mesh filename="file://$(find manipulatorws)/meshes/gripper_stl/finger_left.stl" scale="0.001 0.001 0.001"/>
                   </geometry>
                   <material name="">
-                    <color rgba="0.9 0.75 0.3 1.0"/>
+                    <color rgba="0.0 1.0 1.0 0.4"/> <!-- RGB = Cyan, A = 30% visible --> 
                   </material>
               </visual>
               <collision>

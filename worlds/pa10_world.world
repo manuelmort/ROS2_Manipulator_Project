@@ -7,23 +7,26 @@
     </physics>
 
     <scene>
-      <ambient>0.2 0.2 0.2 1</ambient>
-      <background>0.3 0.3 0.3 1</background>
+      <!-- Soft bluish ambient light for subtle reflections on metal -->
+    <ambient>0.75 0.85 0.95 1</ambient>      <!-- Dark navy background (clean lab feel, helps glowing parts pop) -->
+      <background>0.01 0.009 0.013 1</background>
+
     </scene>
+
+
 
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
     <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
 
-    <!--light-->
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
       <pose>0 0 10 0 0 0</pose>
-      <diffuse>0.3 0.3 0.3 1</diffuse>
-      <specular>0.05 0.05 0.05 1</specular>
+      <diffuse>0.6 0.6 0.9 1</diffuse>         <!-- cool white with a blue tint -->
+      <specular>0.1 0.1 0.3 1</specular>
       <attenuation>
         <range>1000</range>
-        <constant>0.9</constant>
+        <constant>0.8</constant>              <!-- slightly dimmer falloff -->
         <linear>0.01</linear>
         <quadratic>0.001</quadratic>
       </attenuation>
