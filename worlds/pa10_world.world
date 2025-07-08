@@ -8,7 +8,7 @@
 
     <scene>
       <!-- Soft bluish ambient light for subtle reflections on metal -->
-    <ambient>0.75 0.85 0.95 1</ambient>      <!-- Dark navy background (clean lab feel, helps glowing parts pop) -->
+    <ambient>1 1 1 1</ambient>      <!-- Dark navy background (clean lab feel, helps glowing parts pop) -->
       <background>0.01 0.009 0.013 1</background>
 
     </scene>
