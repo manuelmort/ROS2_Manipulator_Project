@@ -40,6 +40,37 @@ def process_ros2_controllers_config(context):
     robot_name = LaunchConfiguration('robot_name').perform(context)
 
     home = str(Path.home())
+    '''
+    # Define both source and install paths
+    src_config_path = os.path.join(
+        home,
+        'ros2_ws/src/mycobot_ros2/mycobot_moveit_config/config',
+        robot_name
+    )
+    install_config_path = os.path.join(
+        home,
+        'ros2_ws/install/mycobot_moveit_config/share/mycobot_moveit_config/config',
+        robot_name
+    )
+
+    # Read from source template
+    template_path = os.path.join(src_config_path, 'ros2_controllers_template.yaml')
+    with open(template_path, 'r', encoding='utf-8') as file:
+        template_content = file.read()
+
+    # Create processed content (leaving template untouched)
+    processed_content = template_content.replace('${prefix}', prefix)
+    processed_content = processed_content.replace('${flange_link}', flange_link)
+
+    # Write processed content to both source and install directories
+    for config_path in [src_config_path, install_config_path]:
+        os.makedirs(config_path, exist_ok=True)
+        output_path = os.path.join(config_path, 'ros2_controllers.yaml')
+        with open(output_path, 'w', encoding='utf-8') as file:
+            file.write(processed_content)
+
+    return []
+    '''
     
 
 # Define the arguments for the XACRO file
@@ -72,8 +103,17 @@ ARGUMENTS = [
 
 
 def generate_launch_description():
+    """Generate the launch description for the mycobot robot visualization.
 
+    This function sets up all necessary nodes and parameters for visualizing
+    the mycobot robot in RViz, including:
+    - Robot state publisher for broadcasting transforms
+    - Joint state publisher for simulating joint movements
+    - RViz for visualization
 
+    Returns:
+        LaunchDescription: Complete launch description for the visualization setup
+    """
     # Define filenames
     urdf_package = 'manipulatorws'
     urdf_filename = 'dual_pa10.urdf.xacro'
@@ -168,7 +208,7 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}],
         condition=IfCondition(jsp_gui))
 
-    # Launch RViza
+    # Launch RViz
     start_rviz_cmd = Node(
         condition=IfCondition(use_rviz),
         package='rviz2',
@@ -193,7 +233,7 @@ def generate_launch_description():
 
     # Add any actions
     ld.add_action(start_joint_state_publisher_cmd)
-    #ld.add_action(start_joint_state_publisher_gui_cmd)
+    ld.add_action(start_joint_state_publisher_gui_cmd)
     ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(start_rviz_cmd)
 

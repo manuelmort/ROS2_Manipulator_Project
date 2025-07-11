@@ -15,7 +15,11 @@
   <!-- Left arm at origin -->
   <xacro:pa10_arm prefix="left_" parent="base_link" xyz="0 0 0" rpy="0 0 0"/>
 
-  <!-- Right arm offset 1.5m in x -->
+  <!-- Right arm offset 1.5m in x dir -->
   <xacro:pa10_arm prefix="right_" parent="base_link" xyz="1.5 0 0" rpy="0 0 0"/>
+
+  <!--Top arm offset 1.5m in y dir-->
+  <!--xacro:pa10_arm prefix="top_" parent="base_link" xyz="0.75 1.5 0" rpy="0 0 0"/-->
+
 
 </robot>
