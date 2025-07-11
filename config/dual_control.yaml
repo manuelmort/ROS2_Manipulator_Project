@@ -1,0 +1,62 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100
+
+    # Controllers for both manipulators
+    left_arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    right_arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+# === Left Arm Controller ===
+left_arm_controller:
+  ros__parameters:
+    joints:
+      - left_S1
+      - left_S2
+      - left_S3
+      - left_E1
+      - left_E2
+      - left_W1
+      - left_W2
+      - left_finger_1_joint
+      - left_finger_2_joint
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+
+    open_loop_control: false
+    allow_integration_in_goal_trajectories: true
+    allow_nonzero_velocity_at_trajectory_end: true
+
+# === Right Arm Controller ===
+right_arm_controller:
+  ros__parameters:
+    joints:
+      - right_S1
+      - right_S2
+      - right_S3
+      - right_E1
+      - right_E2
+      - right_W1
+      - right_W2
+      - right_finger_1_joint
+      - right_finger_2_joint
+
+    command_interfaces:
+      - position
+
+    state_interfaces:
+      - position
+
+    open_loop_control: false
+    allow_integration_in_goal_trajectories: true
+    allow_nonzero_velocity_at_trajectory_end: true
+

@@ -62,27 +62,28 @@ def generate_launch_description():
         output='screen'
     )
 
-    spawner_arm = ExecuteProcess(
-        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'arm_controller'],
+    # Spawner processes for each controller
+    spawner_left_arm = ExecuteProcess(
+        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'left_arm_controller'],
         output='screen'
     )
 
-    spawner_gripper = ExecuteProcess(
-        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'gripper_action_controller'],
+    spawner_right_arm = ExecuteProcess(
+        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'right_arm_controller'],
         output='screen'
     )
-    
 
-
-
-    lnn_control_node = Node(
-        package='manipulatorws',
-        executable='lnn_control_node.py',  # This matches your script name
-        name='lnn_control_node',
-        output='screen',
-        parameters=[{'use_sim_time': True}]
+    spawner_left_gripper = ExecuteProcess(
+        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'left_gripper_controller'],
+        output='screen'
     )
 
+    spawner_right_gripper = ExecuteProcess(
+        cmd=['ros2', 'run', 'controller_manager', 'spawner', 'right_gripper_controller'],
+        output='screen'
+    )
+
+    # Event sequence: spawn_entity → joint_state_broadcaster → left_arm → right_arm → grippers
     load_jsb = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawn_entity,
@@ -90,19 +91,29 @@ def generate_launch_description():
         )
     )
 
-    load_arm = RegisterEventHandler(
+    load_left_arm = RegisterEventHandler(
         event_handler=OnProcessExit(
             target_action=spawner_jsb,
-            on_exit=[spawner_arm],
+            on_exit=[spawner_left_arm],
         )
     )
 
-    load_gripper = RegisterEventHandler(
+    load_right_arm = RegisterEventHandler(
         event_handler=OnProcessExit(
-            target_action=spawner_arm,
-            on_exit=[spawner_gripper],
+            target_action=spawner_left_arm,
+            on_exit=[spawner_right_arm],
         )
     )
+
+    load_grippers = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=spawner_right_arm,
+            on_exit=[spawner_left_gripper, spawner_right_gripper],
+        )
+    )
+
+
+
     '''
     launch_lnn_node = RegisterEventHandler(
         event_handler=OnProcessExit(
@@ -124,7 +135,8 @@ def generate_launch_description():
         robot_state_publisher,
         spawn_entity,
         load_jsb,
-        load_arm,
+        load_left_arm,
+        load_right_arm,
         #load_gripper,
         #lnn_control_node,
         bridge

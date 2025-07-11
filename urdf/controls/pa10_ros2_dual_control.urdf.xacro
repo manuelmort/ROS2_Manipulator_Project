@@ -1,0 +1,106 @@
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="pa10_ros2_control_dual" params="use_gazebo">
+
+    <!-- Left Arm Control -->
+    <ros2_control name="left_arm_system" type="system">
+      <hardware>
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      </hardware>
+
+      <!-- Left PA10 joints -->
+      <joint name="left_S1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="left_S2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="left_S3">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="left_E1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="left_E2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="left_W1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="left_W2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+
+      <!-- Left gripper -->
+      <joint name="left_finger_1_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="left_finger_2_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+    <!-- Right Arm Control -->
+    <ros2_control name="right_arm_system" type="system">
+      <hardware>
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
+      </hardware>
+
+      <!-- Right PA10 joints -->
+      <joint name="right_S1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="right_S2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="right_S3">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="right_E1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="right_E2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="right_W1">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+      <joint name="right_W2">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+      </joint>
+
+      <!-- Right gripper -->
+      <joint name="right_finger_1_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+      <joint name="right_finger_2_joint">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </ros2_control>
+
+  </xacro:macro>
+
+</robot>

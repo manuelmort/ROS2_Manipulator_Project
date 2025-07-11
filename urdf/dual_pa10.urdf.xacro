@@ -4,13 +4,18 @@
   <!-- Shared world link -->
   <link name="world"/>
 
+  <link name="base_link"/>
+  <joint name="base_to_world" type="fixed">
+    <parent link="world"/>
+    <child link="base_link"/>
+  </joint>
   <!-- Include PA10 macro -->
   <xacro:include filename="$(find manipulatorws)/urdf/pa10.urdf.xacro"/>
 
   <!-- Left arm at origin -->
-  <xacro:pa10_arm prefix="left_" parent="world" xyz="0 0 0" rpy="0 0 0"/>
+  <xacro:pa10_arm prefix="left_" parent="base_link" xyz="0 0 0" rpy="0 0 0"/>
 
   <!-- Right arm offset 1.5m in x -->
-  <xacro:pa10_arm prefix="right_" parent="world" xyz="1.5 0 0" rpy="0 0 0"/>
+  <xacro:pa10_arm prefix="right_" parent="base_link" xyz="1.5 0 0" rpy="0 0 0"/>
 
 </robot>
