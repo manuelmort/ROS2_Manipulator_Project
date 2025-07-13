@@ -33,27 +33,16 @@ m = 6  # task space DOF
 C1 = 2e-3 * np.eye(n)
 C2 = 2e-3 * np.eye(m)
 W = np.eye(n)
-#theta_goal = np.array([0.1 , -1.0, 0, 2.0, 0, 3.8, 0.0])
-#theta_goal = np.array([-1.9, -1.10, -0.10, 2.14, -0.110, 3.8, 2.59270569])
-theta_list = [
+
+theta_list_left = [
+
+    np.array([-0.017, 0.541, 0.049, 1.82, 0.024, -0.91 , 0.0]),    
+ 
+]
+theta_list_right = [
     
-    #np.array([0.0, 0, 0, 0, 0, 0, 0.0]),
-    #np.array([0.1, -1.0, 0, 2.0, 0, 3.8, 0.0]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 3.14072, 0.855 , 0.0]),
-    #np.array([-0.017, 0.753, 0.049, 1.098, -3.14072, 0.24 , 0.0]),
-    #np.array([-0.017, 0.984, 0.049, 1.098, 3.1472, 0.545 , 0.0]),
+    np.array([0.017, -0.683, 0.049, -1.828, 0.024, 0.918, 0.0]),    
 
-
-    np.array([-0.017, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-    #np.array([-0.017, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-
-
-
-    #np.array([1.57, 0.753, 0.049, 1.098, 0.0072, -0.264 , 0.0]),
-    #np.array([1.57, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-    #np.array([1.57, 0.487, 0.049, 1.977, 0.0072, -0.855 , 0.0]),
-    #np.array([0.001, 0.001, 0.001, 0.001, 0.001, -0.001 , 0.001])
 
 ]
 
@@ -114,82 +103,102 @@ plt.tight_layout()
 plt.show()
 
 '''
-theta_traj_list = []
+
 class LNNNode(Node):
     def __init__(self):
         super().__init__('lnn_sim_node')
         self.publisher_ = self.create_publisher(JointState, '/joint_states', 10)
         self.timer_period = 0.01  # 100 Hz
 
-
         self.joint_names = [
-            'left_link_1', 'left_link_2', 'left_link_3',
-            'left_link_4', 'left_link_5', 'left_link_6',
-            'left_ee_link', 'left_link_finger_1_joint', 'left_link_finger_2_joint',
-            'right_link_1', 'right_link_2', 'right_link_3',
-            'right_link_4', 'right_link_5', 'right_link_6',
-            'right_ee_link', 'right_finger_1_joint', 'right_finger_2_joint'
+            'left_S1', 'left_S2', 'left_S3',
+            'left_E1', 'left_E2', 'left_W1', 'left_W2',
+            'right_S1', 'right_S2', 'right_S3',
+            'right_E1', 'right_E2', 'right_W1', 'right_W2',
+            'left_finger_1_joint', 'left_finger_2_joint',
+            'right_finger_1_joint', 'right_finger_2_joint'
         ]
 
-        y_current = np.zeros(2 * n + m)
+        y_current_left = np.zeros(2 * n + m)
+        y_current_right = np.zeros(2 * n + m)
+
         t_span = (0, 10)
-        t_eval = np.linspace(*t_span, 800)
+        t_eval = np.linspace(*t_span, 1000)
 
-        theta_traj_list = []
+        left_traj_segments = []
+        right_traj_segments = []
 
-        for i, theta_goal in enumerate(theta_list):
-            self.get_logger().info(f"🧭 Solving trajectory {i+1}/{len(theta_list)}")
+        # Simulate left arm
+        for i, theta_goal in enumerate(theta_list_left):
+            self.get_logger().info(f"🧭 Solving LEFT trajectory {i+1}/{len(theta_list_left)}")
             dynamics_fn, stop_event = dynamics_loop(theta_goal)
 
             sol = solve_ivp(
                 dynamics_fn,
                 t_span,
-                y_current,
+                y_current_left,
                 t_eval=t_eval,
                 events=stop_event,
                 method='RK45',
                 rtol=1e-6,
                 atol=1e-9
             )
-
             theta_segment = sol.y[0:n, :].T
-            theta_traj_list.append(theta_segment)
-            y_current = sol.y[:, -1]
-            time.sleep(1)
+            left_traj_segments.append(theta_segment)
+            y_current_left = sol.y[:, -1]
+            time.sleep(0.5)
 
-        # For now: duplicate left arm trajectory for right
-        theta_traj_full = np.hstack([
-            np.vstack(theta_traj_list),  # left arm
-            np.vstack(theta_traj_list)   # right arm (same as left)
-        ])
+        # Simulate right arm
+        for i, theta_goal in enumerate(theta_list_right):
+            self.get_logger().info(f"🧭 Solving RIGHT trajectory {i+1}/{len(theta_list_right)}")
+            dynamics_fn, stop_event = dynamics_loop(theta_goal)
 
-        self.theta_traj = theta_traj_full
+            sol = solve_ivp(
+                dynamics_fn,
+                t_span,
+                y_current_right,
+                t_eval=t_eval,
+                events=stop_event,
+                method='RK45',
+                rtol=1e-6,
+                atol=1e-9
+            )
+            theta_segment = sol.y[0:n, :].T
+            right_traj_segments.append(theta_segment)
+            y_current_right = sol.y[:, -1]
+            time.sleep(0.5)
+
+        # Stack both into one trajectory: [left | right]
+        left_arm = np.vstack(left_traj_segments)
+        right_arm = np.vstack(right_traj_segments)
+
+        self.theta_traj_left = left_arm
+        self.theta_traj_right = right_arm
+
+
         self.step = 0
         self.timer = self.create_timer(self.timer_period, self.publish_joint_state)
 
     def publish_joint_state(self):
-        if self.step >= len(self.theta_traj):
+        if self.step >= min(len(self.theta_traj_left), len(self.theta_traj_right)):
             self.get_logger().info("✅ Simulation complete.")
             self.timer.cancel()
             return
+
 
         claw_angle = np.sin(time.time()) * 0.02
 
         joint_state = JointState()
         joint_state.header.stamp = self.get_clock().now().to_msg()
 
-        # Simulate same motion for both arms
-        arm_angles = self.theta_traj[self.step].tolist()
+        left_angles = self.theta_traj_left[self.step]
+        right_angles = self.theta_traj_right[self.step]
 
         joint_state.name = self.joint_names
-        joint_state.position = (
-            arm_angles + [claw_angle, claw_angle] +  # left
-            arm_angles + [claw_angle, claw_angle]    # right
-        )
-
+        joint_state.position = list(left_angles) + list(right_angles) + [0.0, 0.0, 0.0, 0.0]
+        
         self.publisher_.publish(joint_state)
         self.step += 1
-
 
 def main(args=None):
     rclpy.init(args=args)

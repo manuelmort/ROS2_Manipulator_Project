@@ -133,7 +133,6 @@ class LNNNode(Node):
 
         theta_traj_list = []
 
-        import time
         for i, theta_goal in enumerate(theta_list):
             self.get_logger().info(f"🧭 Solving trajectory {i+1}/{len(theta_list)}")
 
@@ -155,7 +154,7 @@ class LNNNode(Node):
 
             y_current = sol.y[:, -1]  # New initial state for next goal
 
-            time.sleep(1)  # ⏸️ Optional pause
+            time.sleep(0.5)  # ⏸️ Optional pause
 
         # Combine into full trajectory
         self.theta_traj = np.vstack(theta_traj_list)

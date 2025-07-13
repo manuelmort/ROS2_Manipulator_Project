@@ -208,7 +208,7 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time}],
         condition=IfCondition(jsp_gui))
 
-    # Launch RViz
+    # Launch RViza
     start_rviz_cmd = Node(
         condition=IfCondition(use_rviz),
         package='rviz2',
@@ -232,8 +232,8 @@ def generate_launch_description():
     ld.add_action(declare_use_sim_time_cmd)
 
     # Add any actions
-    #ld.add_action(start_joint_state_publisher_cmd)
-    #ld.add_action(start_joint_state_publisher_gui_cmd)
+    ld.add_action(start_joint_state_publisher_cmd)
+    ld.add_action(start_joint_state_publisher_gui_cmd)
     ld.add_action(start_robot_state_publisher_cmd)
     ld.add_action(start_rviz_cmd)
 
