@@ -36,14 +36,11 @@ W = np.eye(n)
 
 theta_list_left = [
 
-    np.array([-0.017, 0.541, 0.049, 1.82, 0.024, -0.91 , 0.0]),    
- 
+    np.array([0.017, 0.399, 0.0, 1.305, 0.0, 1.47 , 0.0]),    
 ]
 theta_list_right = [
     
-    np.array([0.017, -0.683, 0.049, -1.828, 0.024, 0.918, 0.0]),    
-
-
+    np.array([0.0, -0.680, -0.045, -1.89, 0.024, 0.918, -0.171]),    
 ]
 
 def dynamics_loop(theta_goal):
@@ -63,7 +60,6 @@ def dynamics_loop(theta_goal):
         v_dot = np.linalg.solve(C1, -W @ v - J.T @ u + null_term)
         u_dot = np.linalg.solve(C2, J @ v - r_d_dot)
 
-        
         return np.concatenate([theta_dot, v_dot, u_dot])
 
     def reached_goal(t, y):
@@ -76,33 +72,6 @@ def dynamics_loop(theta_goal):
 
     return dynamics, reached_goal
 
-
-# =====================
-# Run Simulation Once
-# =====================
-
-
-
-'''
-
-# ========================
-# Plot Joint Angle Errors
-# ========================
-theta_traj = sol.y[0:n, :].T  # shape: (timesteps, 7)
-errors = theta_goal - theta_traj
-
-plt.figure(figsize=(10, 6))
-for i in range(n):
-    plt.plot(t_eval, errors[:, i], label=f'Joint {i+1}')
-plt.xlabel("Time [s]")
-plt.ylabel("Joint Angle Error [rad]")
-plt.title("Joint Angle Errors Over Time")
-plt.legend()
-plt.grid(True)
-plt.tight_layout()
-plt.show()
-
-'''
 
 class LNNNode(Node):
     def __init__(self):
@@ -130,7 +99,7 @@ class LNNNode(Node):
 
         # Simulate left arm
         for i, theta_goal in enumerate(theta_list_left):
-            self.get_logger().info(f"🧭 Solving LEFT trajectory {i+1}/{len(theta_list_left)}")
+            self.get_logger().info(f"Solving LEFT trajectory {i+1}/{len(theta_list_left)}")
             dynamics_fn, stop_event = dynamics_loop(theta_goal)
 
             sol = solve_ivp(
@@ -150,7 +119,7 @@ class LNNNode(Node):
 
         # Simulate right arm
         for i, theta_goal in enumerate(theta_list_right):
-            self.get_logger().info(f"🧭 Solving RIGHT trajectory {i+1}/{len(theta_list_right)}")
+            self.get_logger().info(f"Solving RIGHT trajectory {i+1}/{len(theta_list_right)}")
             dynamics_fn, stop_event = dynamics_loop(theta_goal)
 
             sol = solve_ivp(
@@ -181,12 +150,10 @@ class LNNNode(Node):
 
     def publish_joint_state(self):
         if self.step >= min(len(self.theta_traj_left), len(self.theta_traj_right)):
-            self.get_logger().info("✅ Simulation complete.")
+            self.get_logger().info("Simulation complete.")
             self.timer.cancel()
             return
 
-
-        claw_angle = np.sin(time.time()) * 0.02
 
         joint_state = JointState()
         joint_state.header.stamp = self.get_clock().now().to_msg()

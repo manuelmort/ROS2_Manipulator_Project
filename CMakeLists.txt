@@ -16,10 +16,15 @@ find_package(ros_gz_sim REQUIRED)
 find_package(ros2_control REQUIRED)
 find_package(xacro REQUIRED)
 
+# REQUIRED CPP PACKAGES
+
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+
 install(DIRECTORY meshes urdf rviz launch worlds config
+
   DESTINATION share/${PROJECT_NAME}
 )
-
 
 install(
   PROGRAMS
@@ -27,10 +32,10 @@ install(
     nodes/list_traj.py
   DESTINATION lib/${PROJECT_NAME}
 )
+
 install(
   PROGRAMS
     nodes/LNNrviz.py
   DESTINATION lib/${PROJECT_NAME}
 )
-
 ament_package()

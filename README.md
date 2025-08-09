@@ -47,4 +47,10 @@ Notes:
 
 roboticstoolbox-python should be replaced in the future with better DH solvers out there if software doesn't get updated to be compatible with python 3.12.
 
+## Installing Move-it
+- sudo apt install ros-<your-distro>-moveit ros-<your-distro>-moveit-common
+
+# Coming Soon
+- Containerization using Docker
+- Dual Manipulation 
 ### 
